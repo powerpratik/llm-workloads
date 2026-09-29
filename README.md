@@ -112,17 +112,44 @@ machine-readable version is [taxonomy/taxonomy.yaml](taxonomy/taxonomy.yaml).
 | [docs/tables.md](docs/tables.md) | all measurement tables (auto-generated) |
 | [docs/references.md](docs/references.md), [docs/notes/](docs/notes) | bibliography, and per-fact evidence notes with source URLs and confidence tags |
 
-## Mapping your own benchmark suite
+## Running it
+
+Set up once (tested with Python 3.11):
 
 ```bash
-pip install pyyaml
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**1. Map a benchmark suite onto the taxonomy** (instant; needs only `pyyaml`):
+
+```bash
 python tools/coverage.py --list-suites
 python tools/coverage.py --suite "RULER" --recommend 6            # archetype/facet coverage, gaps, tasks that close them
 python tools/coverage.py --tasks longbench:,scbench:retr-kv,aime  # any mix of catalog task ids or suite prefixes
-python tools/coverage.py --custom my_benchmark.yaml               # benchmarks not in the catalog, described by facets
+python tools/coverage.py --custom taxonomy/examples/custom_suite.yaml   # benchmarks not in the catalog, described by facets
 ```
 
-To add a benchmark permanently, add rules or overrides to `taxonomy/build_catalog.py` and rebuild.
+To add a benchmark permanently, add rules or overrides to `taxonomy/build_catalog.py` and rebuild (step 2).
+
+**2. Rebuild the catalog, figures, tables and generated docs from the committed results** (seconds, no
+downloads):
+
+```bash
+python taxonomy/build_catalog.py && python tools/coverage.py --matrix && python tools/render_catalog.py
+(cd analysis && python literature_coverage.py && python make_figures.py && python render_tables.py)
+git status   # no changes = every generated file reproduced (figure bytes can vary with matplotlib/font versions)
+```
+
+**3. Re-run every measurement from the raw public data** (about 2 minutes to download 1.8 GB, then under 10
+minutes on 4 cores):
+
+```bash
+bash analysis/fetch_data.sh   # into ./data (git-ignored); set LLMW_DATA to put it elsewhere
+bash analysis/run_all.sh      # tokenizers, M1-M6, figures, tables, docs; ends by reporting what changed
+```
+
+Steps, data provenance and definitions are in [docs/methodology.md](docs/methodology.md).
 
 ## Repository layout
 
@@ -130,12 +157,13 @@ To add a benchmark permanently, add rules or overrides to `taxonomy/build_catalo
 taxonomy/   taxonomy.yaml (facets, archetypes), benchmarks.yaml (284 tasks, 33 suites; generated),
             build_catalog.py (mapping rules), sources/ (task- and method-level tables with provenance)
 tools/      coverage.py (suite mapping, gaps, greedy recommendations), render_catalog.py
-analysis/   fetch_data.sh, build_tokenizers.py, length_profiles.py, reuse_distance.py, context_scope.py,
-            agent_trajectories.py, serving_traces.py, literature_coverage.py, make_figures.py, render_tables.py
+analysis/   fetch_data.sh, run_all.sh, build_tokenizers.py, length_profiles.py, reuse_distance.py,
+            context_scope.py, agent_trajectories.py, serving_traces.py, literature_coverage.py, make_figures.py,
+            render_tables.py
 results/    all measurement outputs (CSV / JSON)
 figures/    fig1–fig7
 docs/       report chapters, evidence notes, references
 ```
 
-Everything is reproducible from public data (GitHub and a public S3 bucket) with the steps in
-[docs/methodology.md](docs/methodology.md). Raw data is not committed.
+Raw data is not committed. Everything comes from public GitHub repositories and a public S3 bucket; no
+Hugging Face access is needed.

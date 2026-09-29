@@ -6,6 +6,7 @@
 #   LLMW_DATA=/path/to/data bash analysis/fetch_data.sh      (default: ./data)
 set -euo pipefail
 DATA=${LLMW_DATA:-$(cd "$(dirname "$0")/.." && pwd)/data}
+mkdir -p "$DATA"; DATA=$(cd "$DATA" && pwd)   # absolute, so a relative LLMW_DATA works too
 RAW=$DATA/raw; TOK=$DATA/tok
 R=https://raw.githubusercontent.com; M=https://media.githubusercontent.com/media
 mkdir -p "$RAW" "$TOK"; cd "$RAW"

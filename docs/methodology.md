@@ -3,25 +3,30 @@
 ## 1. Reproducing every number
 
 ```bash
-pip install gguf tokenizers numpy pandas matplotlib pyyaml
-export LLMW_DATA=$PWD/data                 # ~1.5 GB of public data (git-ignored)
-bash analysis/fetch_data.sh                 # GitHub raw / LFS media / sparse clones + public SWE-bench S3 bucket
-python analysis/build_tokenizers.py         # Llama-3 & Qwen2 tokenizers rebuilt offline; asserts exact match with llama.cpp test vectors
-cd analysis
-python length_profiles.py                   # M1  -> results/length_profiles.csv
-python reuse_distance.py                    # M2  -> results/reuse_distance.csv (~5 min)
-python context_scope.py                     # M3/M4 -> results/context_scope.csv, locomo_*.csv, context_redundancy.csv
-python agent_trajectories.py                # M5  -> results/agent_*.csv/json
-python serving_traces.py "qwen:to-C chat" & python serving_traces.py "qwen:to-B API" & \
-python serving_traces.py "qwen:thinking" & python serving_traces.py "qwen:coder" & \
-python serving_traces.py "mooncake:conversation" "mooncake:tool&agent" "mooncake:synthetic"; wait
-python serving_traces.py --merge            # M6  -> results/serving_*_all.csv (the Qwen coder trace takes tens of minutes)
-python literature_coverage.py               # literature archetype coverage
-python make_figures.py && python render_tables.py
-cd .. && python taxonomy/build_catalog.py && python tools/coverage.py --matrix && python tools/render_catalog.py
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+bash analysis/fetch_data.sh   # 1.8 GB of public data (~2 min) into ./data (git-ignored; LLMW_DATA overrides)
+bash analysis/run_all.sh      # every step below, under 10 minutes on 4 cores; per-step logs in data/logs/
+git status                    # no changes = every committed output was reproduced
 ```
 
-All scripts are deterministic; the reference run used Python 3.11 on 4 CPU cores.
+`run_all.sh` runs these steps; each can also be run on its own from `analysis/` (or the repository root for the
+last three):
+
+| step | script | outputs |
+|---|---|---|
+| tokenizers | `build_tokenizers.py` | Llama-3 and Qwen2 tokenizers rebuilt offline; asserts an exact match with llama.cpp's test vectors |
+| M1 | `length_profiles.py` | `results/length_profiles.csv` |
+| M2 | `reuse_distance.py` | `results/reuse_distance.csv` |
+| M3, M4 | `context_scope.py` | `results/context_scope.csv`, `locomo_*.csv`, `context_redundancy.csv` |
+| M5 | `agent_trajectories.py` | `results/agent_*.csv`, `agent_growth.json` |
+| M6 | `serving_traces.py "<trace>"` as five parallel replays, then `serving_traces.py --merge` | `results/serving_*_all.csv` |
+| literature | `literature_coverage.py` | `results/literature_coverage*.csv`, Fig. 7 |
+| catalog | `taxonomy/build_catalog.py`, `tools/coverage.py --matrix`, `tools/render_catalog.py` | `taxonomy/benchmarks.yaml`, `results/suite_coverage.*`, `docs/benchmark_mapping.md` |
+| figures, tables | `make_figures.py`, `render_tables.py` | `figures/`, `docs/tables.md` |
+
+All scripts are deterministic; the reference run used Python 3.11 on 4 CPU cores. CSV, JSON and markdown
+outputs reproduce exactly; figure bytes can vary with the matplotlib version and installed fonts.
 
 ## 2. Data provenance
 
