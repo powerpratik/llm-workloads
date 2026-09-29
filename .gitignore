@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .venv/
+# per-process partial outputs of parallel serving_traces.py runs (merged into *_all.csv, then deleted)
+results/serving_*.csv
+!results/serving_*_all.csv
