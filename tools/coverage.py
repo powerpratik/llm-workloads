@@ -175,11 +175,12 @@ def matrix(use_alt=False):
     stressors = [("growth", "decode_dominated"), ("growth", "accumulating"), ("query", "deferred"),
                  ("query", "evolving"), ("fidelity", "exact_high_entropy"), ("dependency", "persistent"),
                  ("dependency", "global"), ("dependency", "self"), ("reuse", "session")]
-    rows = []
+    rows, exact = [], {}
     for name, ids in CAT["suites"].items():
         tl = [TASKS[i] for i in ids]
         got, score, _ = coverage(tl, use_alt)
-        r = {"suite": name, "tasks": len(tl), "coverage": round(score, 3)}
+        exact[name] = score  # format percentages from the unrounded score (no double rounding)
+        r = {"suite": name, "tasks": len(tl), "coverage": round(score, 5)}
         for a in ARCH:
             r[a] = sum(1 for t in tl if t["archetype"] == a or a in t.get("secondary", []))
         for f, v in stressors:
@@ -194,11 +195,11 @@ def matrix(use_alt=False):
              "lc_code_struct": "CODE", "shared_context_multiturn": "MTURN", "agentic": "AGENT", "streaming_lm": "STRM"}
     md = ["| suite | n | score | " + " | ".join(short[a] for a in ARCH) + " | decode-dom. | accum. | q-deferred | "
           "exact-HE | persistent |", "|---|---|---|" + "---|" * (len(ARCH) + 5)]
-    for r in sorted(rows, key=lambda r: -r["coverage"]):
+    for r in sorted(rows, key=lambda r: -exact[r["suite"]]):
         cells = [str(r[a]) if r[a] else "·" for a in ARCH]
         st = [r["growth=decode_dominated"], r["growth=accumulating"], r["query=deferred"],
               r["fidelity=exact_high_entropy"], r["dependency=persistent"]]
-        md.append(f"| {r['suite']} | {r['tasks']} | {r['coverage']:.0%} | " + " | ".join(cells) + " | "
+        md.append(f"| {r['suite']} | {r['tasks']} | {exact[r['suite']]:.0%} | " + " | ".join(cells) + " | "
                   + " | ".join(str(x) if x else "·" for x in st) + " |")
     (ROOT / "results" / "suite_coverage.md").write_text("\n".join(md) + "\n")
     print("\n".join(md))
