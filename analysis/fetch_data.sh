@@ -87,4 +87,4 @@ EOF
   xargs -P 12 -I{} sh -c 'f=$(basename "{}"); [ -s "swebench_trajs/'"$sub"'/$f" ] || curl -s --retry 3 -o "swebench_trajs/'"$sub"'/$f" "'"$S3"'/{}"' < "swebench_trajs/keys_$sub.txt"
   echo "$sub: $(ls "swebench_trajs/$sub" | wc -l) trajectories"
 done
-echo "done -> $DATA ; next: python analysis/build_tokenizers.py"
+echo "done -> $DATA ; next: bash analysis/run_all.sh"
