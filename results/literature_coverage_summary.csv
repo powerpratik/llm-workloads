@@ -1,0 +1,3 @@
+cohort,methods,compact,short_gen,long_reason,long_gen,sparse_retrieval,multi_hop,aggregation,many_shot_icl,lc_code_struct,shared_context_multiturn,agentic,streaming_lm,median_archetypes_per_method
+2023-2024,39,0.2821,0.359,0.0,0.0256,0.7692,0.6154,0.7692,0.1795,0.2564,0.1026,0.0,0.3333,4.0
+2025-2026,28,0.0714,0.4643,0.5357,0.0714,0.4643,0.5,0.4286,0.1429,0.1429,0.2143,0.0714,0.0714,2.5

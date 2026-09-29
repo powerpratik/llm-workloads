@@ -1,0 +1,55 @@
+workload,dataset,archetype,n,in_p10,in_p50,in_p90,in_mean,in_max,out_p10,out_p50,out_p90,out_mean,out_max,decode_share_p50,total_p50,total_p90,out_source,notes,qwen2_over_llama3_in,constraints_per_prompt_mean,turns_mean,turns_max,queries_per_context_mean,contexts
+gsm8k-0shot,GSM8K test,short_gen,1319,39.0,59.0,93.0,62.696,189.0,42.0,76.0,132.0,82.3889,243.0,0.5521,137.0,212.0,reference CoT,,1.0369,,,,,
+gsm8k-8shot-cot,GSM8K test (lm-eval 8-shot CoT),short_gen,1319,692.0,712.0,746.0,715.696,842.0,42.0,76.0,132.0,82.3889,243.0,0.0955,790.0,865.0,reference CoT,,,,,,,
+math500,MATH-500,short_gen,500,21.0,49.0,135.2,68.6,756.0,58.0,157.5,442.1,209.678,1281.0,0.7598,212.0,554.1,reference solution,,1.0463,,,,,
+aime24-reference,AIME 2024,short_gen,30,52.8,86.0,149.2,103.0667,374.0,450.7,1303.5,3054.5,1547.0,3803.0,0.9409,1388.0,3124.1,reference solution,human solutions; thinking models emit 10-30x more (see arenahard-v2 thinking rows),,,,,,
+bbh-3shot-cot,BIG-Bench Hard (27 tasks),short_gen,6511,503.0,853.0,1270.0,882.4328,2021.0,89.0,119.0,260.0,160.8245,473.0,0.158,984.0,1518.0,per-task mean length of exemplar rationales,output estimated from the task's CoT exemplars,,,,,,
+humaneval,HumanEval,short_gen,164,66.3,117.0,225.7,131.2927,391.0,14.0,45.5,106.8,53.8476,240.0,0.2818,166.5,314.0,canonical solution,,,,,,,
+mbpp,MBPP (test split),short_gen,500,66.0,94.0,192.0,119.498,2230.0,23.0,46.0,107.1,57.886,431.0,0.301,155.0,264.1,reference code,,,,,,,
+ifeval,IFEval,short_gen,541,24.0,41.0,72.0,45.9279,360.0,,,,,,,,,n/a,outputs not released; constraint-following over the whole response,,1.5416,,,,
+alpacaeval:Meta-Llama-3-8B-Instruct,AlpacaEval 2 (805 instr.),short_gen,805,9.0,21.0,73.6,35.4957,483.0,79.2,439.0,677.4,412.1056,1668.0,0.947,465.0,716.0,model output (Meta-Llama-3-8B-Instruct),,,,,,,
+alpacaeval:Meta-Llama-3.1-70B-Instruct-Turbo,AlpacaEval 2 (805 instr.),short_gen,805,9.0,21.0,73.6,35.4957,483.0,89.0,460.0,722.0,443.9516,1689.0,0.9524,492.0,758.4,model output (Meta-Llama-3.1-70B-Instruct-Turbo),,,,,,,
+alpacaeval:gpt-4o-2024-05-13,AlpacaEval 2 (805 instr.),short_gen,805,9.0,21.0,73.6,35.4957,483.0,56.0,401.0,746.0,406.2323,1806.0,0.9396,425.0,792.6,model output (gpt-4o-2024-05-13),,,,,,,
+alpacaeval:claude-3-5-sonnet-20240620,AlpacaEval 2 (805 instr.),short_gen,805,9.0,21.0,73.6,35.4957,483.0,113.4,278.0,569.0,315.6609,1721.0,0.9316,304.0,609.2,model output (claude-3-5-sonnet-20240620),,,,,,,
+alpacaeval:Qwen2-72B-Instruct,AlpacaEval 2 (805 instr.),short_gen,805,9.0,21.0,73.6,35.4957,483.0,75.0,334.0,603.0,347.4534,2350.0,0.9349,372.0,645.8,model output (Qwen2-72B-Instruct),,,,,,,
+alpacaeval:gpt4_1106_preview,AlpacaEval 2 (805 instr.),short_gen,805,9.0,21.0,73.6,35.4957,483.0,83.0,461.0,714.6,431.641,1830.0,0.9481,491.0,755.6,model output (gpt4_1106_preview),,,,,,,
+arenahard-v0.1:gpt-4-0314,Arena-Hard v0.1,short_gen,500,12.0,30.5,241.0,95.202,2107.0,168.5,391.0,691.2,423.092,1470.0,0.925,461.0,833.8,model output (gpt-4-0314),,,,,,,
+arenahard-v2:hard_prompt:o3-mini-2025-01-31,Arena-Hard v2.0 hard_prompt,short_gen,500,21.0,93.5,817.9,325.59,6349.0,248.8,781.0,1992.5,1026.2,4916.0,0.8675,996.0,2818.6,model answer (hidden reasoning not counted),,,,,,,
+arenahard-v2:creative_writing:o3-mini-2025-01-31,Arena-Hard v2.0 creative_writing,short_gen,250,15.0,60.0,457.4,203.776,4944.0,133.8,657.5,1599.6,823.132,8431.0,0.8934,810.0,1905.4,model answer (hidden reasoning not counted),,,,,,,
+arenahard-v2:hard_prompt:gemini-2.0-flash-001,Arena-Hard v2.0 hard_prompt,short_gen,498,21.0,92.5,819.7,325.1627,6349.0,386.8,1275.0,2914.5,1589.4217,9649.0,0.9054,1492.0,3554.9,model answer (hidden reasoning not counted),,,,,,,
+arenahard-v2:creative_writing:gemini-2.0-flash-001,Arena-Hard v2.0 creative_writing,short_gen,250,15.0,60.0,457.4,203.776,4944.0,148.3,780.0,1612.8,927.328,7865.0,0.9098,944.5,2012.9,model answer (hidden reasoning not counted),,,,,,,
+arenahard-v2:hard_prompt:deepseek-r1,Arena-Hard v2.0 hard_prompt,long_reason,500,21.0,93.5,817.9,325.59,6349.0,1524.0,3610.5,9802.6,4780.822,21004.0,0.9728,3769.0,10031.1,model output incl. visible thinking,,,,,,,
+arenahard-v2:creative_writing:deepseek-r1,Arena-Hard v2.0 creative_writing,long_gen,250,15.0,60.0,457.4,203.776,4944.0,727.6,1318.0,2433.7,1515.94,5959.0,0.9566,1518.5,2729.4,model output incl. visible thinking,,,,,,,
+arenahard-v2:hard_prompt:qwq-32b,Arena-Hard v2.0 hard_prompt,long_reason,500,21.0,93.5,817.9,325.59,6349.0,1989.3,5067.5,12111.1,6380.792,29101.0,0.9794,5211.0,12846.3,model output incl. visible thinking,,,,,,,
+arenahard-v2:creative_writing:qwq-32b,Arena-Hard v2.0 creative_writing,long_gen,250,15.0,60.0,457.4,203.776,4944.0,895.2,1726.5,3090.6,2183.656,37261.0,0.9636,1891.5,3421.6,model output incl. visible thinking,,,,,,,
+mtbench-turn1(ref),MT-Bench (math/reasoning/coding w/ GPT-4 ref.),short_gen,30,18.9,28.5,81.0,47.7,200.0,19.6,224.5,330.8,189.5,455.0,0.834,257.5,407.9,GPT-4 reference,,,,,,,
+mtbench-turn2(ref),MT-Bench turn 2 (history+q2),shared_context_multiturn,30,106.5,283.0,459.0,277.5,503.0,36.3,224.5,425.6,219.1,493.0,0.4163,478.5,796.3,GPT-4 reference,,,,,,,
+mtbench101-final-turn,MT-Bench-101 (13 tasks),shared_context_multiturn,1388,67.0,176.0,330.3,196.5072,793.0,24.0,62.0,159.0,81.3365,426.0,0.267,244.5,485.0,gold response,,,,3.0317,7,,
+longbench-write(required),LongBench-Write (120 prompts),long_gen,120,16.9,50.0,273.2,97.4333,731.0,425.0,2195.5,10059.6,3927.2,28337.0,0.972,2477.5,10079.4,required length x 1.42 tok/word,"English + Chinese prompts; requested lengths 100 to 20,000 words",,,,,,
+leval:codeU,L-Eval Closed-ended-tasks,lc_code_struct,90,20338.3,24479.0,30650.1,26051.9556,30838.0,1.0,7.0,19.0,9.9667,58.0,0.0003,24494.0,30661.9,reference output,,,,,,1.0,90
+leval:coursera,L-Eval Closed-ended-tasks,sparse_retrieval,172,5150.1,7168.0,14522.4,8219.4186,16169.0,1.0,1.0,2.0,1.1802,2.0,0.0001,7169.0,14523.4,reference output,,,,,,11.4667,15
+leval:gsm100,L-Eval Closed-ended-tasks,many_shot_icl,100,4616.0,4633.5,4670.1,4638.5,4706.0,1.0,1.0,1.0,1.08,2.0,0.0002,4634.5,4671.1,reference output,,,,,,1.0,100
+leval:quality,L-Eval Closed-ended-tasks,sparse_retrieval,202,3004.1,6664.5,7026.8,6076.3267,7436.0,6.0,15.0,26.0,15.1931,45.0,0.0022,6680.0,7039.9,reference output,,,,,,13.4667,15
+leval:sci_fi,L-Eval Closed-ended-tasks,sparse_retrieval,64,6017.0,14303.0,24079.0,14987.1094,24089.0,6.0,6.0,6.0,6.0,6.0,0.0004,14309.0,24085.0,reference output,,,,,,9.1429,7
+leval:topic_retrieval_longchat,L-Eval Closed-ended-tasks,sparse_retrieval,150,7941.5,10759.0,13560.5,10741.74,13665.0,5.0,6.0,8.0,6.44,10.0,0.0006,10765.5,13566.6,reference output,,,,,,3.0,50
+leval:tpo,L-Eval Closed-ended-tasks,sparse_retrieval,269,3264.0,3539.0,3680.0,3506.0446,3797.0,1.0,1.0,1.0,1.0,1.0,0.0003,3540.0,3681.0,reference output,,,,,,17.9333,15
+leval:financial_qa,L-Eval Open-ended-tasks,sparse_retrieval,68,4403.0,4660.5,6666.0,4985.5,6684.0,30.3,72.0,127.6,76.8824,192.0,0.0152,4731.0,6723.7,reference output,,,,,,8.5,8
+leval:gov_report_summ,L-Eval Open-ended-tasks,aggregation,14,2681.9,4406.0,8909.6,5784.5,20822.0,215.4,320.5,431.9,332.2857,524.0,0.071,4735.5,9282.2,reference output,,,,,,1.0,14
+leval:legal_contract_qa,L-Eval Open-ended-tasks,sparse_retrieval,154,7790.2,17704.0,55175.7,22772.6753,56073.0,25.0,64.5,155.1,83.3571,486.0,0.0034,17733.5,55265.9,reference output,,,,,,6.6957,23
+leval:meeting_summ,L-Eval Open-ended-tasks,aggregation,177,7408.0,13291.0,25364.4,14903.4972,30389.0,39.0,66.0,109.4,71.2712,139.0,0.0047,13353.0,25452.8,reference output,,,,,,7.6957,23
+leval:multidoc_qa,L-Eval Open-ended-tasks,sparse_retrieval,158,2672.0,2963.0,4773.1,3429.7342,6676.0,10.0,22.0,40.0,25.0,63.0,0.0067,2995.0,4806.0,reference output,,,,,,6.8696,23
+leval:narrative_qa,L-Eval Open-ended-tasks,sparse_retrieval,214,16521.0,50751.0,66748.0,52125.1682,191367.0,7.0,10.0,18.0,11.5467,24.0,0.0002,50762.5,66757.7,reference output,,,,,,9.3043,23
+leval:natural_question,L-Eval Open-ended-tasks,sparse_retrieval,109,8895.8,22392.0,38796.2,22463.4312,41855.0,2.0,4.0,10.2,6.0092,64.0,0.0003,22404.0,38798.2,reference output,,,,,,5.1905,21
+leval:news_summ,L-Eval Open-ended-tasks,aggregation,12,2908.8,3752.0,10411.1,5792.6667,16309.0,308.3,359.0,385.2,347.25,408.0,0.0781,4106.0,10768.0,reference output,,,,,,1.0,12
+leval:paper_assistant,L-Eval Open-ended-tasks,aggregation,69,5490.6,8083.0,15132.0,9498.971,30747.0,156.6,370.0,559.4,358.3478,873.0,0.0402,8626.0,15831.2,reference output,,,,,,3.0,23
+leval:patent_summ,L-Eval Open-ended-tasks,aggregation,14,3731.8,5077.0,9788.5,6119.2857,10053.0,72.0,155.0,226.4,147.1429,235.0,0.0246,5245.0,9905.2,reference output,,,,,,1.0,14
+leval:review_summ,L-Eval Open-ended-tasks,aggregation,144,16158.6,17534.0,19415.0,17663.9653,19725.0,44.9,93.0,249.0,118.0625,320.0,0.0053,17695.5,19506.7,reference output,,,,,,6.0,24
+leval:scientific_qa,L-Eval Open-ended-tasks,sparse_retrieval,184,2501.3,3915.5,5764.7,4203.375,5831.0,1.0,12.0,44.1,19.125,204.0,0.0034,3932.0,5791.0,reference output,,,,,,8.0,23
+leval:tv_show_summ,L-Eval Open-ended-tasks,aggregation,14,5310.1,8135.5,12054.1,8533.4286,12189.0,68.6,124.5,169.8,124.9286,248.0,0.0123,8208.5,12175.7,reference output,,,,,,1.0,14
+quality-dev,QuALITY dev (multiple choice),sparse_retrieval,2086,2721.5,6557.0,7601.5,5729.5815,8492.0,1.0,1.0,1.0,1.0,1.0,0.0002,6558.0,7602.5,answer letter,evidence often spread: questions written to require reading the whole article,,,,,9.0696,230
+crosscodeeval:python,CrossCodeEval python (BM25 cross-file ctx),lc_code_struct,2665,562.4,976.0,2247.6,1275.0049,8222.0,4.0,9.0,18.0,10.3872,47.0,0.0087,989.0,2260.0,ground-truth line,,,,,,,
+crosscodeeval:java,CrossCodeEval java (BM25 cross-file ctx),lc_code_struct,2139,608.8,988.0,2210.6,1265.5531,5909.0,6.0,11.0,21.0,12.4965,72.0,0.0104,998.0,2224.8,ground-truth line,,,,,,,
+crosscodeeval:typescript,CrossCodeEval typescript (BM25 cross-file ctx),lc_code_struct,3356,652.5,987.0,2053.0,1221.5909,5197.0,7.0,14.0,26.0,15.7607,204.0,0.0128,1000.0,2070.5,ground-truth line,,,,,,,
+crosscodeeval:csharp,CrossCodeEval csharp (BM25 cross-file ctx),lc_code_struct,1768,409.0,606.0,1804.7,929.9118,12984.0,5.0,10.0,22.0,12.0803,56.0,0.0142,619.0,1828.0,ground-truth line,,,,,,,
+locomo-qa,LoCoMo (10 long conversations),shared_context_multiturn,1542,14565.1,19497.0,21199.0,18862.0973,21841.0,2.0,5.0,12.0,6.6738,68.0,0.0003,19507.0,21218.8,gold answer,,,,,,154.2,10
+niah(design),Needle-in-a-Haystack (PG essays),sparse_retrieval,4,3100.0,20000.0,99200.0,42250.0,128000.0,20.0,20.0,20.0,20.0,20.0,0.0016,20020.0,99220.0,design,haystack corpus = 49 essays / 148762 tokens; depth swept 0-100%,,,,,,

@@ -1,0 +1,148 @@
+trace,policy,capacity_tokens,hit_ratio
+mooncake:conversation,LRU,4096,0.0425
+mooncake:conversation,LRU,8192,0.0425
+mooncake:conversation,LRU,16384,0.0425
+mooncake:conversation,LRU,32768,0.0426
+mooncake:conversation,LRU,65536,0.0427
+mooncake:conversation,LRU,131072,0.0428
+mooncake:conversation,LRU,262144,0.043
+mooncake:conversation,LRU,524288,0.0457
+mooncake:conversation,LRU,1048576,0.056
+mooncake:conversation,LRU,2097152,0.0896
+mooncake:conversation,LRU,4194304,0.1851
+mooncake:conversation,LRU,8388608,0.2708
+mooncake:conversation,LRU,16777216,0.3415
+mooncake:conversation,LRU,33554432,0.3665
+mooncake:conversation,LRU,67108864,0.3725
+mooncake:conversation,FIFO,8388608,0.2423
+mooncake:conversation,LFU,8388608,0.2312
+mooncake:conversation,OPT,8388608,0.3736
+mooncake:conversation,FIFO,16777216,0.3097
+mooncake:conversation,LFU,16777216,0.2952
+mooncake:conversation,OPT,16777216,0.3736
+mooncake:tool&agent,LRU,4096,0.107
+mooncake:tool&agent,LRU,8192,0.1838
+mooncake:tool&agent,LRU,16384,0.2378
+mooncake:tool&agent,LRU,32768,0.2857
+mooncake:tool&agent,LRU,65536,0.3236
+mooncake:tool&agent,LRU,131072,0.3435
+mooncake:tool&agent,LRU,262144,0.3493
+mooncake:tool&agent,LRU,524288,0.3521
+mooncake:tool&agent,LRU,1048576,0.3597
+mooncake:tool&agent,LRU,2097152,0.3848
+mooncake:tool&agent,LRU,4194304,0.4546
+mooncake:tool&agent,LRU,8388608,0.5157
+mooncake:tool&agent,LRU,16777216,0.5601
+mooncake:tool&agent,LRU,33554432,0.5697
+mooncake:tool&agent,LRU,67108864,0.5705
+mooncake:tool&agent,FIFO,32768,0.264
+mooncake:tool&agent,LFU,32768,0.3528
+mooncake:tool&agent,OPT,32768,0.3609
+mooncake:tool&agent,FIFO,8388608,0.4947
+mooncake:tool&agent,LFU,8388608,0.4869
+mooncake:tool&agent,OPT,8388608,0.5706
+mooncake:synthetic,LRU,4096,0.0008
+mooncake:synthetic,LRU,8192,0.0015
+mooncake:synthetic,LRU,16384,0.003
+mooncake:synthetic,LRU,32768,0.0048
+mooncake:synthetic,LRU,65536,0.0092
+mooncake:synthetic,LRU,131072,0.0244
+mooncake:synthetic,LRU,262144,0.0472
+mooncake:synthetic,LRU,524288,0.0867
+mooncake:synthetic,LRU,1048576,0.1524
+mooncake:synthetic,LRU,2097152,0.2482
+mooncake:synthetic,LRU,4194304,0.3851
+mooncake:synthetic,LRU,8388608,0.5413
+mooncake:synthetic,LRU,16777216,0.6406
+mooncake:synthetic,LRU,33554432,0.6512
+mooncake:synthetic,LRU,67108864,0.6512
+mooncake:synthetic,FIFO,4194304,0.3572
+mooncake:synthetic,LFU,4194304,0.3753
+mooncake:synthetic,OPT,4194304,0.6094
+mooncake:synthetic,FIFO,16777216,0.6153
+mooncake:synthetic,LFU,16777216,0.6413
+mooncake:synthetic,OPT,16777216,0.6512
+qwen:coder,LRU,4096,0.0188
+qwen:coder,LRU,8192,0.0289
+qwen:coder,LRU,16384,0.0482
+qwen:coder,LRU,32768,0.0844
+qwen:coder,LRU,65536,0.1627
+qwen:coder,LRU,131072,0.271
+qwen:coder,LRU,262144,0.3369
+qwen:coder,LRU,524288,0.378
+qwen:coder,LRU,1048576,0.4222
+qwen:coder,LRU,2097152,0.4878
+qwen:coder,LRU,4194304,0.555
+qwen:coder,LRU,8388608,0.6048
+qwen:coder,LRU,16777216,0.6388
+qwen:coder,LRU,33554432,0.6575
+qwen:coder,LRU,67108864,0.6642
+qwen:coder,FIFO,262144,0.254
+qwen:coder,LFU,262144,0.307
+qwen:coder,OPT,262144,0.4754
+qwen:coder,FIFO,8388608,0.5662
+qwen:coder,LFU,8388608,0.4993
+qwen:coder,OPT,8388608,0.6646
+qwen:thinking,LRU,4096,0.1059
+qwen:thinking,LRU,8192,0.1263
+qwen:thinking,LRU,16384,0.1557
+qwen:thinking,LRU,32768,0.2026
+qwen:thinking,LRU,65536,0.2585
+qwen:thinking,LRU,131072,0.3167
+qwen:thinking,LRU,262144,0.3657
+qwen:thinking,LRU,524288,0.3973
+qwen:thinking,LRU,1048576,0.4234
+qwen:thinking,LRU,2097152,0.4393
+qwen:thinking,LRU,4194304,0.4524
+qwen:thinking,LRU,8388608,0.458
+qwen:thinking,LRU,16777216,0.4608
+qwen:thinking,LRU,33554432,0.4624
+qwen:thinking,LRU,67108864,0.4624
+qwen:thinking,FIFO,65536,0.2284
+qwen:thinking,LFU,65536,0.2631
+qwen:thinking,OPT,65536,0.3927
+qwen:thinking,FIFO,1048576,0.3922
+qwen:thinking,LFU,1048576,0.3769
+qwen:thinking,OPT,1048576,0.4624
+qwen:to-B API,LRU,4096,0.1248
+qwen:to-B API,LRU,8192,0.1597
+qwen:to-B API,LRU,16384,0.1932
+qwen:to-B API,LRU,32768,0.2329
+qwen:to-B API,LRU,65536,0.2856
+qwen:to-B API,LRU,131072,0.3484
+qwen:to-B API,LRU,262144,0.4099
+qwen:to-B API,LRU,524288,0.4567
+qwen:to-B API,LRU,1048576,0.4887
+qwen:to-B API,LRU,2097152,0.5105
+qwen:to-B API,LRU,4194304,0.5252
+qwen:to-B API,LRU,8388608,0.5356
+qwen:to-B API,LRU,16777216,0.5416
+qwen:to-B API,LRU,33554432,0.5449
+qwen:to-B API,LRU,67108864,0.5458
+qwen:to-B API,FIFO,65536,0.2547
+qwen:to-B API,LFU,65536,0.4061
+qwen:to-B API,OPT,65536,0.4504
+qwen:to-B API,FIFO,2097152,0.4778
+qwen:to-B API,LFU,2097152,0.5347
+qwen:to-B API,OPT,2097152,0.5458
+qwen:to-C chat,LRU,4096,0.0839
+qwen:to-C chat,LRU,8192,0.1006
+qwen:to-C chat,LRU,16384,0.1169
+qwen:to-C chat,LRU,32768,0.1263
+qwen:to-C chat,LRU,65536,0.1332
+qwen:to-C chat,LRU,131072,0.1413
+qwen:to-C chat,LRU,262144,0.1567
+qwen:to-C chat,LRU,524288,0.1994
+qwen:to-C chat,LRU,1048576,0.2997
+qwen:to-C chat,LRU,2097152,0.4169
+qwen:to-C chat,LRU,4194304,0.5063
+qwen:to-C chat,LRU,8388608,0.5564
+qwen:to-C chat,LRU,16777216,0.5779
+qwen:to-C chat,LRU,33554432,0.5806
+qwen:to-C chat,LRU,67108864,0.5807
+qwen:to-C chat,FIFO,1048576,0.2662
+qwen:to-C chat,LFU,1048576,0.2302
+qwen:to-C chat,OPT,1048576,0.5201
+qwen:to-C chat,FIFO,8388608,0.5025
+qwen:to-C chat,LFU,8388608,0.4432
+qwen:to-C chat,OPT,8388608,0.5807

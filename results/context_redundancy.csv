@@ -1,0 +1,18 @@
+context,archetype,samples,gzip_ratio_p50,repeated_4gram_rate_p50
+NIAH haystack (Paul Graham essays),sparse_retrieval,10,2.5662,0.0204
+passkey filler (repeated sentences),sparse_retrieval,1,205.8824,0.9985
+JSON key-value store (random UUIDs),sparse_retrieval,1,1.7851,0.0368
+L-Eval narrative_qa,sparse_retrieval,23,2.9149,0.2438
+L-Eval legal_contract_qa,sparse_retrieval,23,3.4878,0.2106
+L-Eval financial_qa,sparse_retrieval,8,2.671,0.0388
+L-Eval meeting_summ,aggregation,23,3.4635,0.3213
+L-Eval gov_report_summ,aggregation,14,3.0526,0.1043
+L-Eval multidoc_qa,sparse_retrieval,23,3.0286,0.1483
+L-Eval codeU,lc_code_struct,30,4.5625,0.4456
+L-Eval gsm100,many_shot_icl,30,3.0734,0.1322
+L-Eval topic_retrieval_longchat,sparse_retrieval,30,3.9383,0.3025
+QuALITY articles,sparse_retrieval,30,2.3336,0.0206
+CrossCodeEval python (retrieved ctx + file),lc_code_struct,287,3.0116,0.1318
+LoCoMo conversations,shared_context_multiturn,10,3.019,0.1528
+SWE-bench agent observations,agentic,60,4.5368,0.4569
+tau-bench retail trajectories,agentic,60,3.328,0.3788

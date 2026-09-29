@@ -1,0 +1,21 @@
+# Example: describe benchmarks that are not in the catalog, then run
+#   python tools/coverage.py --custom taxonomy/examples/custom_suite.yaml --recommend 5
+# Allowed values are listed in taxonomy/taxonomy.yaml (facets.<name>.values[].id and archetypes[].id).
+- id: mybench:contract-qa
+  archetype: sparse_retrieval        # one evidence span in a long document
+  growth: prefill_dominated          # ~30K-token contracts, short answers
+  dependency: [point]
+  query: known_last
+  fidelity: exact_high_entropy       # clause numbers and amounts must be exact
+  composition: [prose]
+  position: uniform
+  reuse: [none]
+- id: mybench:support-chat
+  archetype: shared_context_multiturn
+  growth: accumulating               # 10-20 turns over a shared knowledge-base document
+  dependency: [point, persistent]    # brand/tone rules in the system prompt must hold every turn
+  query: deferred
+  fidelity: semantic
+  composition: [dialogue, instructions]
+  position: early
+  reuse: [session, shared_prefix]

@@ -1,0 +1,292 @@
+# KV-cache stress taxonomy of LLM inference workloads  (v1.0, 2026-09-29)
+#
+# Two layers:
+#   1. capability DOMAIN  - what the task is about (math, code, ...). Needed for realism and to
+#      mirror how academia/industry report results, but it does NOT predict eviction behaviour.
+#   2. KV-STRESS SIGNATURE - facets that determine how a KV-cache eviction policy can hurt the
+#      task: growth, dependency, query timing, fidelity, composition, redundancy, position, reuse.
+# Twelve request-level ARCHETYPES are named regions of the signature space; six STREAM archetypes
+# describe request streams for cross-request (prefix-cache) eviction.
+# Token thresholds use the Llama-3 tokenizer. Evidence keys resolve in docs/references.md;
+# "measured:" keys point at results/ files produced by analysis/.
+
+version: "1.0"
+thresholds:
+  long_context: 2048      # prompt tokens; >= typical per-sequence eviction budgets (128-2048) in the literature
+  long_output: 1024       # decoded tokens
+  compact_total: 2048     # prompt + output below this => the whole sequence fits common budgets
+  near_window: 512        # distance used for the "local" dependency test (MR@512)
+
+domains:   # layer 1 (multi-label). Consolidated from HELM, OpenCompass, model-card groupings and usage studies.
+  - {id: knowledge, name: "Knowledge & factual recall", examples: "MMLU, MMLU-Pro, TriviaQA (closed-book), GPQA"}
+  - {id: understanding, name: "Language understanding & commonsense", examples: "HellaSwag, Winogrande, PIQA, BoolQ, ARC"}
+  - {id: math, name: "Mathematical reasoning", examples: "GSM8K, MATH, AIME"}
+  - {id: code, name: "Code (generation, completion, repair, repository understanding)", examples: "HumanEval, LiveCodeBench, RepoBench, SWE-bench"}
+  - {id: reasoning, name: "Logical / scientific / symbolic reasoning", examples: "BBH, GPQA, FOLIO"}
+  - {id: reading, name: "Reading comprehension & document QA", examples: "NarrativeQA, QuALITY, Qasper"}
+  - {id: summarization, name: "Summarization & synthesis", examples: "GovReport, QMSum, MultiNews"}
+  - {id: retrieval_rag, name: "Retrieval-augmented generation & citation", examples: "HotpotQA, NQ-RAG, ALCE"}
+  - {id: icl, name: "In-context learning / pattern induction", examples: "TREC, Banking77 many-shot"}
+  - {id: structured, name: "Structured data (tables, JSON, logs)", examples: "JSON KV retrieval, table QA"}
+  - {id: instruction, name: "Instruction following & open-ended assistance", examples: "IFEval, AlpacaEval, Arena-Hard"}
+  - {id: writing, name: "Creative & long-form writing", examples: "LongBench-Write, HelloBench"}
+  - {id: dialogue_memory, name: "Multi-turn dialogue & long-term memory", examples: "MT-Bench-101, LoCoMo, LongMemEval"}
+  - {id: agentic, name: "Tool use & agents", examples: "SWE-bench, tau-bench, BFCL, WebArena"}
+  - {id: multilingual, name: "Multilingual & translation", examples: "LongBench-zh, FLORES"}
+  - {id: safety, name: "Safety, alignment & system-prompt integrity", examples: "JailBreakV, RaccoonBench"}
+  - {id: language_modeling, name: "Language modelling (perplexity)", examples: "PG19, WikiText"}
+
+facets:  # layer 2 - the KV-stress signature
+  growth:
+    question: "Where does the KV cache come from and when does it exceed the budget?"
+    values:
+      - id: compact
+        definition: "prompt + output < compact_total; the whole sequence fits common per-sequence budgets."
+        test: "median(L_in + L_out) < 2048"
+        eviction_relevance: "Eviction only acts under ratio-defined budgets (e.g. keep 20% of the prompt); the task is a control for 'fundamental ability' regressions."
+      - id: prefill_dominated
+        definition: "long prompt, short output; KV is created in one prefill."
+        test: "L_in >= 2048 and L_out < 0.25 * L_in"
+        eviction_relevance: "One-shot prefill compression (SnapKV-style) and decode-time policies both apply; the quality of the prefill selection dominates."
+      - id: decode_dominated
+        definition: "short prompt, long output; most KV is produced by the model itself."
+        test: "L_out >= 1024 and L_out >= L_in"
+        eviction_relevance: "Prefill-only compression is a no-op; only decode-time eviction bounds memory. Evicted tokens are self-generated state."
+      - id: mixed_long
+        definition: "long prompt and long output."
+        test: "L_in >= 2048 and L_out >= 1024"
+        eviction_relevance: "Needs both prefill and decode budgets; interaction between the two (SCOPE, ShotKV) matters."
+      - id: accumulating
+        definition: "two or more dependent LLM calls over one growing context (multi-turn chat, agent loops)."
+        test: ">= 2 calls where call k's prompt contains call k-1's prompt and output"
+        eviction_relevance: "Eviction decisions are irreversible across calls; later calls may need what earlier compression dropped; cross-request prefix reuse applies."
+    evidence: [measured:length_profiles, measured:agent_summary, measured:serving_traces_all, holdonto2025, scope2025]
+
+  dependency:
+    question: "Which earlier tokens must still be readable when a token is generated?  (multi-label; first = primary)"
+    values:
+      - id: parametric
+        definition: "Answerable from model weights; the context carries only the instruction."
+        test: "closed-book accuracy close to open-book accuracy"
+        eviction_relevance: "Eviction damage is masked; good control, bad probe."
+        evidence: [wu2024retrievalhead, kvfundabench2025, liu2024lostmiddle]
+      - id: local
+        definition: "Next-token needs lie in a short recent window (fluency, continuation)."
+        test: "lexical copy events with distance > 512 are < 5% (MR@512 < 0.05)"
+        eviction_relevance: "Sink + recent-window policies are near-lossless; the workload cannot reveal retrieval failures."
+        evidence: [streamingllm2024, measured:reuse_distance]
+      - id: point
+        definition: "One small evidence span somewhere in the context (low scope, low diffusion)."
+        test: "oracle keeps <= 2 chunks of 128 tokens to cover 80% of the answer (k80 <= 2)"
+        eviction_relevance: "Survival of a few tokens decides the outcome; attention to them is low until the query arrives."
+        evidence: [goldman2024, ruler2024, measured:context_scope]
+      - id: multi
+        definition: "Several evidence spans, possibly chained (later hop found via an earlier hop)."
+        test: ">= 2 disjoint evidence spans (gold) or k80 >= 3 with low spread; or explicit hop chain"
+        eviction_relevance: "Query-aware selection sees only what the question names; intermediate hops are invisible at compression time."
+        evidence: [ruler2024, babilong2024, measured:locomo_evidence]
+      - id: global
+        definition: "Information spread over most of the context must be integrated (high scope)."
+        test: "spread80 >= 0.4 of the context, or task defined over all items (count, sort, summarize)"
+        eviction_relevance: "Attention is flat, not sparse; top-k/heavy-hitter policies degrade unless the context is redundant."
+        evidence: [magicpig2025, kvzip2025, goldman2024, measured:context_scope]
+      - id: self
+        definition: "Generation depends on the model's own earlier output (intermediate results, plans, written text)."
+        test: "most lexical copy sources lie in the output (src_prompt < 0.5) and reach beyond 512 tokens for long outputs"
+        eviction_relevance: "Decode-time eviction removes state the model created; importance drifts and recurs."
+        evidence: [lazyeviction2025, rkv2025, scope2025, measured:reuse_distance]
+      - id: persistent
+        definition: "Early instructions / system prompt / tool schemas / policy must govern all later output."
+        test: "constraints stated once before the first output and checked on the whole response or trajectory"
+        eviction_relevance: "End-of-prompt scoring windows evict earlier instructions (ignored constraints, system-prompt leakage)."
+        evidence: [pitfalls2026, streamingllm2024, measured:agent_summary]
+
+  query:
+    question: "When the cache is compressed, is it known what will be asked of it?"
+    values:
+      - id: known_last
+        definition: "A single query is fully known and sits at the end of the prompt (question-after-context)."
+        eviction_relevance: "Favours query-aware prefill compression (observation window contains the question)."
+      - id: known_first
+        definition: "The query precedes the context only (question-before-context)."
+        eviction_relevance: "End-of-prompt observation windows see context, not the question."
+      - id: deferred
+        definition: "Context is compressed before the query is known, or several independent queries reuse one compressed context."
+        eviction_relevance: "Query-aware methods lose to trivial baselines; union of all future queries' needs must survive."
+        evidence: [scbench2025, kvzip2025, kvpress, queryvis2026, measured:context_scope]
+      - id: evolving
+        definition: "No single query: needs shift during long generation or across agent steps."
+        eviction_relevance: "Any one-shot selection goes stale; policies must re-estimate importance or allow recall."
+        evidence: [quest2024, arkvale2024, morphkv2025, lazyeviction2025]
+
+  fidelity:
+    question: "How exact must the reproduced information be?"
+    values:
+      - {id: exact_high_entropy, definition: "Verbatim, unpredictable content: UUIDs, numbers, passkeys, code identifiers, citations, tool arguments.", eviction_relevance: "Nothing to reconstruct from priors; partially kept spans are miscopied. Span length matters (7- vs 64-digit passkey)."}
+      - {id: exact_low_entropy, definition: "Constrained answers: option letter, yes/no, class label, short entity.", eviction_relevance: "Guessing floor and first-token-from-full-cache effect hide damage."}
+      - {id: semantic, definition: "Meaning-level correctness (F1, ROUGE, judge on facts).", eviction_relevance: "Fuzzy metrics under-report small losses."}
+      - {id: open, definition: "Open-ended quality (chat, creative), judged by model or human.", eviction_relevance: "Failures show as repetition, incoherence, length change; needs output-length and judge metrics."}
+    evidence: [yuan2024whatmust, kvpress, rethinkkv2025]
+
+  composition:
+    question: "What is the context made of?  (multi-label)"
+    values:
+      - {id: prose, definition: "Natural narrative or expository text (books, reports, articles)."}
+      - {id: multidoc, definition: "Several retrieved/independent documents incl. distractors (RAG-style)."}
+      - {id: dialogue, definition: "Conversation history (multi-session chat)."}
+      - {id: code, definition: "Source code (single file or repository)."}
+      - {id: structured, definition: "JSON, tables, logs, key-value stores."}
+      - {id: demonstrations, definition: "Few-/many-shot examples of a task."}
+      - {id: synthetic_filler, definition: "Repetitive or random haystack text (repeated sentences, random tokens)."}
+      - {id: generated_trace, definition: "The model's own reasoning / draft text."}
+      - {id: tool_observations, definition: "Environment/tool outputs appended during agent loops."}
+      - {id: instructions, definition: "System prompt, policy documents, tool schemas, constraints."}
+
+  redundancy:
+    question: "How compressible is the context? (gzip ratio of the context text, measured)"
+    values:
+      - {id: low, definition: "gzip ratio < 2.5 (e.g. essays 2.6, QuALITY 2.3, random-UUID JSON 1.8)", eviction_relevance: "little to discard safely"}
+      - {id: medium, definition: "2.5 <= ratio < 4 (reports, dialogue, contracts, code files)"}
+      - {id: high, definition: "4 <= ratio < 20 (SWE-bench agent observations 4.5, L-Eval codeU repository code 4.6)", eviction_relevance: "many evictable tokens, but rare identifiers inside are critical"}
+      - {id: extreme, definition: "ratio >= 20 (repeated passkey filler: 206)", eviction_relevance: "the needle is an outlier; eviction looks artificially easy"}
+    evidence: [measured:context_redundancy]
+
+  position:
+    question: "Where does the needed evidence sit?"
+    values:
+      - {id: swept, definition: "Controlled depth sweep (NIAH-style)."}
+      - {id: uniform, definition: "Natural, roughly uniform over the context."}
+      - {id: early, definition: "Front-loaded (instructions, system prompt, first documents)."}
+      - {id: middle, definition: "Middle of the context (lost-in-the-middle zone; first evicted by sink+window)."}
+      - {id: recent, definition: "Near the end / most recent turn."}
+    evidence: [liu2024lostmiddle, streamingllm2024, measured:locomo_evidence]
+
+  reuse:
+    question: "How do requests share KV across calls? (stream level; drives cross-request eviction)"
+    values:
+      - {id: none, definition: "Independent requests, no shared prefix."}
+      - {id: shared_prefix, definition: "Many sessions share a hot prefix (system prompt, template, tool schemas, few-shot, document)."}
+      - {id: session, definition: "Multi-turn session re-reads its own history; human think time between turns."}
+      - {id: agentic_loop, definition: "Append-only context growth with second-scale gaps (tool calls)."}
+      - {id: fanout, definition: "Parallel samples / tree search branch from one prefix (self-consistency, ToT)."}
+      - {id: nonprefix_chunk, definition: "Same chunks reused at different positions (RAG; CacheBlend-style)."}
+    evidence: [sglang2024, kvcachewild2025, mooncake2025, measured:serving_traces_all, measured:serving_mrc_all]
+
+validity_flags:  # properties of a benchmark's measurement, recorded per task
+  - {id: parametric_leakage, meaning: "Answer obtainable closed-book; eviction damage under-estimated."}
+  - {id: query_in_compressed_context, meaning: "The question was visible to the compressor (optimistic for query-aware methods)."}
+  - {id: short_answer, meaning: "Answer decoded in <= 3 tokens, so the first token sees an uncompressed prefill."}
+  - {id: fuzzy_metric, meaning: "ROUGE/F1/judge metric that under-reports small losses."}
+  - {id: output_length_unreported, meaning: "Evaluation ignores output-length inflation / runaway generation under compression."}
+
+archetypes:  # request-level classes; every benchmark task maps to one primary archetype
+  - id: compact
+    name: "Compact knowledge & understanding"
+    signature: {growth: compact, dependency: [parametric, point], query: known_last, fidelity: exact_low_entropy}
+    mechanism: "KV smaller than common budgets; knowledge lives in weights; one-token answers."
+    measured: "MMLU/ARC-style prompts are tens to a few hundred tokens with 1-token answers."
+    eviction_role: "Negative control. Stress only under ratio budgets; KVFundaBench reports knowledge/commonsense resilient."
+    examples: [MMLU, MMLU-Pro, ARC, HellaSwag, Winogrande, PIQA, COPA, BoolQ, TruthfulQA-MC, CommonsenseQA, OpenBookQA]
+  - id: short_gen
+    name: "Short-context multi-step generation (CoT, function-level code, chat)"
+    signature: {growth: compact, dependency: [self, point, persistent], query: evolving, fidelity: exact_high_entropy|open}
+    mechanism: "Copied numbers/identifiers come from the short prompt or recent output; everything within ~512 tokens."
+    measured: "GSM8K/MATH-500/HumanEval/AlpacaEval: MR@512 = 0.00-0.03; copy-source p90 distance 65-320 tokens."
+    eviction_role: "Tests fundamental-ability loss under aggressive ratios; arithmetic most sensitive (17-43% drops, KVFundaBench)."
+    examples: [GSM8K, MATH, BBH-CoT, HumanEval, MBPP, IFEval, AlpacaEval, Arena-Hard (non-thinking), MT-Bench turn 1]
+  - id: long_reason
+    name: "Long-horizon reasoning (thinking models)"
+    signature: {growth: decode_dominated, dependency: [self, point, persistent], query: evolving, fidelity: exact_high_entropy}
+    mechanism: "Thousands of self-generated tokens re-referenced far back; importance recurs; redundant self-checks."
+    measured: "Arena-Hard v2 thinking: median 3.6k (R1) / 5.1k (QwQ) decoded tokens; MR@512 = 0.42-0.46, p90 copy distance 2.7-3.3k; production thinking trace output p50 1.7k, p90 9.2k."
+    eviction_role: "Only decode-time policies matter; watch output-length inflation and final-answer vs rationale faithfulness."
+    examples: [AIME 2024/2025, MATH-500 (thinking), GPQA-Diamond, LiveCodeBench, HLE, Arena-Hard v2 (thinking)]
+  - id: long_gen
+    name: "Long-form generation"
+    signature: {growth: decode_dominated, dependency: [self, persistent], query: evolving, fidelity: open}
+    mechanism: "Coherence with earlier written text and adherence to length/outline constraints across thousands of tokens."
+    measured: "LongBench-Write required length p50 ~2.2k tokens (up to 20k words); QwQ creative writing MR@512 = 0.32 but MR@4096 = 0.00 (shorter-range than reasoning)."
+    eviction_role: "Failures are repetition, drift, length violation; needs judge + length metrics."
+    examples: [LongBench-Write, LongGenBench, HelloBench, LongProc, story generation]
+  - id: sparse_retrieval
+    name: "Sparse retrieval from long context"
+    signature: {growth: prefill_dominated, dependency: [point], query: known_last, fidelity: exact_high_entropy|semantic}
+    mechanism: "Few evidence tokens, attention to them is low until the question arrives."
+    measured: "L-Eval QA: oracle needs 1-2 chunks (0.7-5.6% of context), spread <= 0.23; legal QA copy sources median 9.1k tokens back (MR@4096 = 0.81)."
+    eviction_role: "Most fragile when the query is hidden or the answer span is long/high-entropy (UUID, passkey)."
+    examples: [NIAH, passkey, RULER NIAH-single, InfiniteBench Retrieve.*, LongBench single-doc QA, L-Eval QA, NoLiMa]
+  - id: multi_hop
+    name: "Multi-evidence / multi-hop reasoning over long context"
+    signature: {growth: prefill_dominated, dependency: [multi], query: known_last, fidelity: exact_high_entropy|semantic}
+    mechanism: "Intermediate hops are not named by the question; chained bindings."
+    measured: "LoCoMo multi-hop: 3.1 evidence turns per question, farthest evidence p50 15.4k tokens before the question."
+    eviction_role: "Distinguishes query-aware selection from true relevance tracking."
+    examples: [RULER VT, RULER multi-key/multi-value NIAH, HotpotQA, 2WikiMQA, MuSiQue, BABILong, LoCoMo multi-hop, Loong]
+  - id: aggregation
+    name: "Global aggregation & summarization"
+    signature: {growth: prefill_dominated, dependency: [global], query: known_last, fidelity: semantic|exact_high_entropy}
+    mechanism: "Needed information spread over the whole context; attention is flat."
+    measured: "L-Eval summarization: the oracle's chunks span 26-79% of the context (5 of 6 tasks >= 41%); single-answer QA spans <= 23%."
+    eviction_role: "Redundant contexts degrade gracefully (summaries); counting/frequency tasks break top-k policies."
+    examples: [GovReport, QMSum, MultiNews, InfiniteBench En.Sum, RULER CWE/FWE, InfiniteBench Math.Find, HELMET re-rank]
+  - id: many_shot_icl
+    name: "Many-shot in-context learning"
+    signature: {growth: prefill_dominated, dependency: [global, point], query: known_last, fidelity: exact_low_entropy}
+    mechanism: "Homogeneous demonstrations; eviction lowers the effective shot count and can drop label definitions."
+    measured: "HELMET: ICL is the least correlated category (0.36-0.63) with other long-context categories."
+    eviction_role: "Shot-level structure (keep whole demonstrations) matters; tiny budgets collapse label spaces."
+    examples: [LongBench TREC/TriviaQA/SAMSum/LSHT, HELMET ICL, LongICLBench, SCBench ICL.ManyShot]
+  - id: lc_code_struct
+    name: "Long-context code & structured data"
+    signature: {growth: prefill_dominated, dependency: [point, multi, local], query: known_last, fidelity: exact_high_entropy}
+    mechanism: "Exact identifiers/signatures defined far away inside highly regular (compressible) text."
+    measured: "CrossCodeEval: 97% of copy sources in the (cross-file) prompt, median 341 tokens back; code gzip ratio 4.6."
+    eviction_role: "Line completion is recency-friendly (token dropping holds up); repository QA/debug is not."
+    examples: [LCC, RepoBench-P, CrossCodeEval, InfiniteBench Code.Debug, SCBench RepoQA, LongBench v2 code/structured, table QA]
+  - id: shared_context_multiturn
+    name: "Multi-turn / multi-query over a shared context"
+    signature: {growth: accumulating, dependency: [point, multi, persistent], query: deferred, fidelity: semantic|exact_high_entropy}
+    mechanism: "Each follow-up needs a different part of the retained context."
+    measured: "Oracle chunks for one query cover 1-12% of a document; the union over the ~3-9 queries asked per document covers 2-47%, pairwise Jaccard 0.01-0.17; LoCoMo 150-200 questions per 19.5k-token conversation."
+    eviction_role: "Breaks query-aware prefill compression (SCBench: sub-O(n) memory infeasible in multi-turn)."
+    examples: [SCBench multi-turn/multi-request, LoCoMo, LongMemEval, MT-Bench-101, OpenAI-MRCR, EpiCache LongConvQA]
+  - id: agentic
+    name: "Agentic tool-use trajectories"
+    signature: {growth: accumulating, dependency: [persistent, point, self], query: evolving, fidelity: exact_high_entropy}
+    mechanism: "Persistent policy/tool schemas + large redundant observations + exact IDs copied across many steps."
+    measured: "SWE-bench (mini-SWE-agent): 12-47 steps, peak context p50 13-17k (p90 26-42k), observations 53-71% of context, MR@512 0.50-0.62, p90 copy distance 4.6-5.7k; tau-bench: policy + tool schemas 3.7-4.1k tokens = 52-61% of the median peak context."
+    eviction_role: "Tests retention of instructions and far-back identifiers under accumulating pressure; pairs with cross-request reuse."
+    examples: [SWE-bench Verified, tau-bench / tau2-bench, BFCL multi-turn, Terminal-Bench, WebArena, OSWorld, GAIA]
+  - id: streaming_lm
+    name: "Streaming / unbounded continuation"
+    signature: {growth: decode_dominated, dependency: [local], query: evolving, fidelity: open}
+    mechanism: "Recency-dominated prediction over unbounded streams."
+    measured: "Perplexity is near-lossless with 4 sink + recent tokens (StreamingLLM)."
+    eviction_role: "Lenient: validates stability, never retrieval. Do not use alone."
+    examples: [PG19 perplexity, WikiText, C4, StreamEval, streaming dialogue]
+
+stream_archetypes:  # request-stream classes for cross-request (prefix-cache) eviction
+  - id: independent
+    reuse: [none]
+    description: "Single-shot requests without shared prefixes (e.g. the vLLM ShareGPT sampler)."
+    measured: "No reuse by construction; exercises capacity, not replacement."
+  - id: shared_prefix_fanin
+    reuse: [shared_prefix]
+    description: "Many sessions share a small hot set of prefixes (system prompts, templates, tool schemas)."
+    measured: "Qwen to-B API: ideal hit 0.55, 0% same-session; LFU 0.41 vs LRU 0.29 (OPT 0.45) at a 64K-token cache."
+  - id: session_continuation
+    reuse: [session, shared_prefix]
+    description: "Multi-turn chat; the session re-reads its history after human think time (~minutes)."
+    measured: "Qwen to-C chat: ideal 0.58, 72% of hits same-session, 46% of requests are follow-ups; LRU 0.30 vs OPT 0.52 at 1M tokens."
+  - id: agentic_loop
+    reuse: [agentic_loop, shared_prefix]
+    description: "Append-only growth with second-scale gaps between calls."
+    measured: "Mooncake tool&agent: 50% of ideal reuse already at a 32K-token cache; SWE-bench cross-step prefix reuse saves 9-44x prefill."
+  - id: reasoning_heavy
+    reuse: [shared_prefix, session]
+    description: "Long decoded reasoning that is stripped from the next turn (low reuse of decode KV)."
+    measured: "Qwen thinking: decode is 43% of tokens, ideal hit 0.46, only 30% of hits same-session."
+  - id: fanout
+    reuse: [fanout]
+    description: "Parallel sampling / tree search from a shared prefix (self-consistency, ToT)."
+    measured: "No public trace; synthesize (SGLang patterns)."

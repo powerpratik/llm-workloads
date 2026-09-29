@@ -1,0 +1,11 @@
+trace,reuse,hits,p10_s,p50_s,p90_s,p99_s
+mooncake:conversation,any,105710,0.0,113.999,519.0,1578.0
+mooncake:tool&agent,any,226316,0.0,0.0,243.0,609.0
+mooncake:synthetic,any,77953,4.814,59.387,281.764,582.892
+qwen:coder,same-session,4668085,2.404,87.427,778.456,3024.621
+qwen:coder,cross-session,5600305,0.428,2.897,105.808,1922.26
+qwen:thinking,same-session,452652,5.889,29.4,268.673,1301.617
+qwen:thinking,cross-session,1036323,0.193,2.989,137.625,1763.582
+qwen:to-B API,cross-session,5394234,0.057,3.048,73.03,1155.115
+qwen:to-C chat,same-session,2628290,40.783,132.361,703.222,2046.447
+qwen:to-C chat,cross-session,1015374,0.063,0.515,23.217,1255.3077

@@ -1,0 +1,5 @@
+# Raw datasets/traces and rebuilt tokenizers are fetched by analysis/fetch_data.sh (not versioned)
+data/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

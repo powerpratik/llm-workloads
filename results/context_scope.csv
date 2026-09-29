@@ -1,0 +1,15 @@
+task,archetype,contexts,queries,queries_per_context,k80_p50,k80_p90,scope80_p50,scope80_p90,spread80_p50,spread80_p90,union_scope_p50,pair_jaccard_mean
+L-Eval narrative_qa,sparse_retrieval,23,201,8.7391,2.0,3.0,0.0065,0.0133,0.2295,0.7364,0.0474,0.0202
+L-Eval natural_question,sparse_retrieval,21,83,3.9524,1.0,1.0,0.0085,0.0143,0.0085,0.0143,0.0205,0.1684
+L-Eval legal_contract_qa,sparse_retrieval,23,154,6.6957,1.0,2.0,0.0078,0.0189,0.0082,0.0189,0.0507,0.006
+L-Eval financial_qa,sparse_retrieval,8,68,8.5,2.0,4.0,0.0556,0.1121,0.0571,0.6136,0.4655,0.0227
+L-Eval scientific_qa,sparse_retrieval,23,147,6.3913,1.0,2.0,0.0357,0.0909,0.0357,0.15,0.1818,0.0563
+L-Eval multidoc_qa,sparse_retrieval,23,154,6.6957,1.0,2.0,0.0445,0.0897,0.0445,0.0909,0.2727,0.1074
+L-Eval paper_assistant,aggregation,23,69,3.0,8.0,12.0,0.1194,0.1869,0.7531,0.9547,0.2571,0.1647
+L-Eval meeting_summ,aggregation,23,177,7.6957,4.0,7.0,0.0352,0.0723,0.4135,0.8427,0.2552,0.058
+L-Eval review_summ,aggregation,24,144,6.0,4.0,7.0,0.0292,0.0507,0.5903,0.8906,0.1429,0.0443
+L-Eval gov_report_summ,aggregation,14,14,1.0,5.5,7.0,0.1498,0.2333,0.7735,0.9346,,
+L-Eval news_summ,aggregation,12,12,1.0,6.5,8.9,0.1881,0.2744,0.7585,0.9561,,
+L-Eval patent_summ,aggregation,14,14,1.0,2.5,4.0,0.0556,0.1316,0.2553,0.6591,,
+L-Eval tv_show_summ,aggregation,14,14,1.0,5.5,8.0,0.0806,0.1398,0.7907,0.9332,,
+QuALITY dev (gold option),sparse_retrieval,230,1197,5.2043,2.0,3.0,0.04,0.0952,0.2,0.7304,0.1914,0.0554
